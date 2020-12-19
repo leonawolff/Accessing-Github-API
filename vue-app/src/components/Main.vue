@@ -17,53 +17,67 @@ Vue.prototype.$username = null
                         <br/><br/>
                             <v-text-field
                                 v-model="name"
-                                :rules="nameRules"
                                 label="GitHub Username"
                                 outlined
                             >
                             </v-text-field>
                         </v-card-text> 
                     
-                        <v-card-actions>
                             <v-btn
                                 color="purple lighten-2"
                                 elevation="4"
-                                @click="reveal = true" >
+                                @click="reveal = true; getData()">
                                 Go!
                             </v-btn>
-                        </v-card-actions>
-
-                        <v-expand-transition>
-                            <v-card
-                                v-if="reveal"
-                                class="transition-fast-in-fast-out v-card--reveal"
-                                style="height: 100%;"
-                            >
-                                <v-card-text> 
-                                    <br/><br/>
-                                    <h1>GitHub API Visualiser</h1>
-                                    <br/><br/>
-                                    <div>Sum Shit</div>
-                                </v-card-text> 
-                    
-                                <v-card-actions>
-                                    <v-btn
-                                        color="purple lighten-2"
-                                        elevation="4"
-                                        @click="reveal = false" >
-                                        Close
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-expand-transition>
+                        <br/><br/>
+                     
                 </v-card>
+
+                <br/><br/>
+
+                <v-card v-if="reveal">
+                    <v-card-text> 
+                        <br/><br/>
+                        <h1>GitHub API Visualiser</h1>
+                        <br/><br/>
+                        {{ this.userData }}
+                    </v-card-text> 
+                 </v-card>
+
+
             </v-container>
         </v-main>
     </v-app>
 </template>
 
 <script>
+    import axios from "axios"
     export default {
-        name: 'Main'
+        name: 'Main',
+        
+        data () {
+            return { 
+                reveal: null,
+                name: "leonawolff",
+                userData: null
+            }
+        },
+        methods: {
+            getData () {
+                let url = "https://api.github.com"
+                let username = this.name
+                let url2 = url + "/users/" + username
+                axios.get(url2, {
+                    headers: {
+                        authorization: "token " + process.env.VUE_APP_API_KEY
+                    },
+                    timeout:1000
+                })
+                .then(response => {
+                    this.userData = response
+                    console.log(this.userData)
+                })
+            }
+        }
     }
 </script>
