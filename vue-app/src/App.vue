@@ -1,20 +1,26 @@
+
 <template>
   <div id="app">
     <img alt="frog" src="./assets/Frog.gif">
-    <Header msg="Welcome to Your Vue.js"/>
+    <h1>GitHub API Visualiser</h1>
+    <form>
+      <label for="fname">Github username:</label><br/><br/>
+      <input type="text" id="username" name="username"><br/><br/>
+      <input type="submit" value="Go!">
+    </form>
   </div>
 </template>
 
-<script>
-import Header from './components/HelloWorld.vue'
 
+
+
+
+<script>
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+  name: 'App'
 }
 </script>
+
 
 <style>
 #app {
