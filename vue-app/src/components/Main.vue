@@ -4,8 +4,9 @@ Vue.prototype.$username = null
     <v-app>
         <v-main>
             <v-container>
-                <v-card v-if="reveal" align="center">
-                    <img alt="frog" src="../assets/Frog.gif">
+                <v-card align="center">
+                    <img alt="frog" v-if='this.userData === null' src="../assets/Frog.gif">
+                    <img alt="profile picture" v-if='this.userData !== null' :src=this.userData.data.avatar_url>
                 </v-card>
                 <br/><br/>
 
@@ -39,6 +40,13 @@ Vue.prototype.$username = null
                     <v-card-text>
                         <br/>
                         <h1>{{ this.userData["data"]["login"]}}</h1>
+                        <div v-if= 'this.userData["data"]["name"] !== null'>
+                            <br/>
+                            <h3>{{this.userData["data"]["name"]}}</h3>
+                        </div>
+                        
+                        <br/>
+                        Number of public repositories: {{ this.userData["data"]["public_repos"]}}
                         <br/>
                         Followers: {{ this.userData["data"]["followers"]}}
                         <br/>
@@ -46,15 +54,21 @@ Vue.prototype.$username = null
                         <br/>
                         Account created: {{ format_date(this.userData["data"]["created_at"])}}
                         <div v-if= 'this.userData["data"]["bio"] !== null'>
-                        Bio: {{ this.userData["data"]["bio"]}}
+                            Bio: {{ this.userData["data"]["bio"]}}
                         </div>
                         <div v-if= 'this.userData["data"]["email"] !== null'>
-                        Email: {{ this.userData["data"]["email"]}}
+                            Email: {{ this.userData["data"]["email"]}}
                         </div>
                         <br/>
                     </v-card-text> 
                  </v-card>
 
+
+                <v-card v-if="reveal" align="center">
+                    <v-card-text>
+
+                    </v-card-text> 
+                 </v-card>
 
             </v-container>
         </v-main>
@@ -66,7 +80,6 @@ Vue.prototype.$username = null
     import axios from "axios"
     export default {
         name: 'Main',
-        
         data () {
             return { 
                 reveal: null,
@@ -79,6 +92,7 @@ Vue.prototype.$username = null
                 let url = "https://api.github.com"
                 let username = this.name
                 let url2 = url + "/users/" + username
+//                let url3 = url2 + "/repos"
                 axios.get(url2, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
