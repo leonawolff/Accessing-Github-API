@@ -61,14 +61,15 @@ Vue.prototype.$username = null
                         </div>
                         <br/>
                     </v-card-text> 
-                 </v-card>
-
+                </v-card>
+                
+                <br/><br/>
 
                 <v-card v-if="reveal" align="center">
                     <v-card-text>
-
+                        {{ this.repoData }}
                     </v-card-text> 
-                 </v-card>
+                </v-card>
 
             </v-container>
         </v-main>
@@ -84,7 +85,8 @@ Vue.prototype.$username = null
             return { 
                 reveal: null,
                 name: "leonawolff",
-                userData: null
+                userData: null,
+                repoData: null
             }
         },
         methods: {
@@ -92,7 +94,7 @@ Vue.prototype.$username = null
                 let url = "https://api.github.com"
                 let username = this.name
                 let url2 = url + "/users/" + username
-//                let url3 = url2 + "/repos"
+                let url3 = url2 + "/repos"
                 axios.get(url2, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
@@ -102,6 +104,16 @@ Vue.prototype.$username = null
                 .then(response => {
                     this.userData = response
                     console.log(this.userData)
+                })
+                axios.get(url3, {
+                    headers: {
+                        authorization: "token " + process.env.VUE_APP_API_KEY
+                    },
+                    timeout:1000
+                })
+                .then(response => {
+                    this.repoData = response
+                    console.log(this.repoData)
                 })
             },
             format_date(value){
