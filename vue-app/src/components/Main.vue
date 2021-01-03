@@ -4,7 +4,7 @@ Vue.prototype.$username = null
     <v-app>
         <v-main>
             <v-container>
-                <v-card align="center">
+                <v-card v-if="reveal" align="center">
                     <img alt="frog" src="../assets/Frog.gif">
                 </v-card>
                 <br/><br/>
@@ -35,12 +35,23 @@ Vue.prototype.$username = null
 
                 <br/><br/>
 
-                <v-card v-if="reveal">
-                    <v-card-text> 
-                        <br/><br/>
-                        <h1>GitHub API Visualiser</h1>
-                        <br/><br/>
-                        {{ this.userData }}
+                <v-card v-if="reveal" align="center">
+                    <v-card-text>
+                        <br/>
+                        <h1>{{ this.userData["data"]["login"]}}</h1>
+                        <br/>
+                        Followers: {{ this.userData["data"]["followers"]}}
+                        <br/>
+                        Following: {{ this.userData["data"]["following"]}}
+                        <br/>
+                        Account created: {{ format_date(this.userData["data"]["created_at"])}}
+                        <div v-if= 'this.userData["data"]["bio"] !== null'>
+                        Bio: {{ this.userData["data"]["bio"]}}
+                        </div>
+                        <div v-if= 'this.userData["data"]["email"] !== null'>
+                        Email: {{ this.userData["data"]["email"]}}
+                        </div>
+                        <br/>
                     </v-card-text> 
                  </v-card>
 
@@ -51,6 +62,7 @@ Vue.prototype.$username = null
 </template>
 
 <script>
+    import moment from 'moment'
     import axios from "axios"
     export default {
         name: 'Main',
@@ -77,6 +89,11 @@ Vue.prototype.$username = null
                     this.userData = response
                     console.log(this.userData)
                 })
+            },
+            format_date(value){
+                if(value){
+                    return moment(String(value)).format('MMMM Do YYYY, h:mm a')
+                }
             }
         }
     }
