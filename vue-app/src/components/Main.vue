@@ -94,7 +94,6 @@ Vue.prototype.$username = null
                 let url = "https://api.github.com"
                 let username = this.name
                 let url2 = url + "/users/" + username
-                let url3 = url2 + "/repos"
                 axios.get(url2, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
@@ -104,7 +103,11 @@ Vue.prototype.$username = null
                 .then(response => {
                     this.userData = response
                     console.log(this.userData)
+                    this.getRepoData(0)
                 })
+            },
+            getRepoData (page) {
+                let url3 = "https://api.github.com/users/" + this.username + "/repos?per_page=100&page=" + page
                 axios.get(url3, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
@@ -112,8 +115,17 @@ Vue.prototype.$username = null
                     timeout:1000
                 })
                 .then(response => {
-                    this.repoData = response
+                    if(page === 0){
+                        this.repoData = response.data
+                    }
+
+                    
                     console.log(this.repoData)
+
+                    if(response === 100){
+                        this.getRepoData(page+1)
+                    }
+                    
                 })
             },
             format_date(value){
