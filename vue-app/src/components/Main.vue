@@ -67,8 +67,13 @@ Vue.prototype.$username = null
 
                 <v-card v-if="reveal" align="center">
                     <v-card-text>
-                        {{ this.repoData }}
-                    </v-card-text> 
+                        <h2>
+                            Languages Used
+                        </h2>
+
+
+                        <pie-chart :data='this.languageData'></pie-chart>
+                    </v-card-text>
                 </v-card>
 
             </v-container>
@@ -86,52 +91,68 @@ Vue.prototype.$username = null
                 reveal: null,
                 name: "leonawolff",
                 userData: null,
-                repoData: null
+                repoData: [],
+                languages: [],
+                languageData: []
             }
         },
         methods: {
             getData () {
+                console.log(this.name)
                 let url = "https://api.github.com"
-                let username = this.name
-                let url2 = url + "/users/" + username
+                let url2 = url + "/users/" + this.name
                 axios.get(url2, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
                     },
-                    timeout:1000
+                    timeout:1000000
                 })
                 .then(response => {
                     this.userData = response
                     console.log(this.userData)
-                    this.getRepoData(0)
+                    this.getRepoData(1)
                 })
             },
             getRepoData (page) {
-                let url3 = "https://api.github.com/users/" + this.username + "/repos?per_page=100&page=" + page
+                console.log(this.name)
+                let url3 = "https://api.github.com/users/" + this.name + "/repos?per_page=100&page=" + page
                 axios.get(url3, {
                     headers: {
                         authorization: "token " + process.env.VUE_APP_API_KEY
                     },
-                    timeout:1000
+                    timeout:1000000
                 })
                 .then(response => {
-                    if(page === 0){
-                        this.repoData = response.data
-                    }
-
-                    
+                    this.repoData = this.repoData.concat(response.data)
                     console.log(this.repoData)
-
-                    if(response === 100){
+                    
+                    if(response.data.length === 100){
                         this.getRepoData(page+1)
                     }
-                    
+                    this.getLanguageInfo()
                 })
             },
             format_date(value){
                 if(value){
                     return moment(String(value)).format('MMMM Do YYYY, h:mm a')
                 }
+            },
+            getLanguageInfo(){
+
+                let i;
+                if (this.repoData !== null){
+                    for (i in this.repoData){
+                        console.log("all the shit " + this.repoData[i].language)
+                        if(this.repoData[i].language !== null){
+                            this.languages.push(this.repoData[i].language)
+                        }
+                        
+                    }
+                    console.log("bhhhv" + this.languages.length)
+                }
+                this.languageData = this.languages.reduce((acum,cur) => Object.assign(acum,{[cur]: (acum[cur] || 0)+1}),{});
+                console.log(this.languageData)
+    //            console.log("first boy! " + this.languageData[0])
             }
         }
     }
