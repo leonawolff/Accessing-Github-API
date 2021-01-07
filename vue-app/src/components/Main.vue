@@ -8,8 +8,8 @@ Vue.prototype.$username = null
                     <img alt="frog" v-if='this.userData === null' src="../assets/Frog.gif">
                     <img alt="profile picture" v-if='this.userData !== null' :src=this.userData.data.avatar_url>
                 </v-card>
+                
                 <br/><br/>
-
 
                 <v-card color="purple lighten-4" align="center">
                     <v-card-text> 
@@ -39,25 +39,25 @@ Vue.prototype.$username = null
                 <v-card v-if="reveal" align="center">
                     <v-card-text>
                         <br/>
-                        <h1>{{ this.userData["data"]["login"]}}</h1>
-                        <div v-if= 'this.userData["data"]["name"] !== null'>
+                        <h1>{{ this.userData.data.login}}</h1>
+                        <div v-if= 'this.userData.data.name !== null'>
                             <br/>
-                            <h3>{{this.userData["data"]["name"]}}</h3>
+                            <h3>{{this.userData.data.name}}</h3>
                         </div>
                         
                         <br/>
-                        Number of public repositories: {{ this.userData["data"]["public_repos"]}}
+                        Number of public repositories: {{ this.userData.data.public_repos}}
                         <br/>
-                        Followers: {{ this.userData["data"]["followers"]}}
+                        Followers: {{ this.userData.data.followers}}
                         <br/>
-                        Following: {{ this.userData["data"]["following"]}}
+                        Following: {{ this.userData.data.following}}
                         <br/>
-                        Account created: {{ format_date(this.userData["data"]["created_at"])}}
-                        <div v-if= 'this.userData["data"]["bio"] !== null'>
-                            Bio: {{ this.userData["data"]["bio"]}}
+                        Account created: {{ format_date(this.userData.data.created_at)}}
+                        <div v-if= 'this.userData.data.bio !== null'>
+                            Bio: {{ this.userData.data.bio}}
                         </div>
-                        <div v-if= 'this.userData["data"]["email"] !== null'>
-                            Email: {{ this.userData["data"]["email"]}}
+                        <div v-if= 'this.userData.data.email !== null'>
+                            Email: {{ this.userData.data.email}}
                         </div>
                         <br/>
                     </v-card-text> 
@@ -67,12 +67,31 @@ Vue.prototype.$username = null
 
                 <v-card v-if="reveal" align="center">
                     <v-card-text>
+                        <v-row>
+                            <v-col>
+                                <h2> User Stats </h2> 
+                                <br/>
+                                <br/>
+                                <br/>
+                                <img alt="user stats" :src="this.readMeStatsUrl"/>
+                                <br/><br/>
+                            </v-col>
+                            <v-col>
+                                <h2>
+                                    Languages Used
+                                </h2>
+                                <br/>
+                                <pie-chart :data='this.languageData'></pie-chart>
+                                <br/>
+                                <br/>
+                            </v-col>
+                        </v-row>
                         <h2>
-                            Languages Used
+                            Number of commits per repository
                         </h2>
+                        <line-chart :data='this.commitData'></line-chart>
 
-
-                        <pie-chart :data='this.languageData'></pie-chart>
+                        <br/> <br/> 
                     </v-card-text>
                 </v-card>
 
@@ -93,12 +112,14 @@ Vue.prototype.$username = null
                 userData: null,
                 repoData: [],
                 languages: [],
-                languageData: []
+                languageData: [],
+                tempCommitData: [],
+                commitData: [],
+                readMeStatsUrl: null
             }
         },
         methods: {
             getData () {
-                console.log(this.name)
                 let url = "https://api.github.com"
                 let url2 = url + "/users/" + this.name
                 axios.get(url2, {
@@ -109,12 +130,12 @@ Vue.prototype.$username = null
                 })
                 .then(response => {
                     this.userData = response
-                    console.log(this.userData)
                     this.getRepoData(1)
+                    this.readMeStatsUrl = "https://github-readme-stats.vercel.app/api?username="+ this.name
+                    console.log(this.readMeStatsUrl)
                 })
             },
             getRepoData (page) {
-                console.log(this.name)
                 let url3 = "https://api.github.com/users/" + this.name + "/repos?per_page=100&page=" + page
                 axios.get(url3, {
                     headers: {
@@ -124,12 +145,12 @@ Vue.prototype.$username = null
                 })
                 .then(response => {
                     this.repoData = this.repoData.concat(response.data)
-                    console.log(this.repoData)
                     
                     if(response.data.length === 100){
                         this.getRepoData(page+1)
                     }
                     this.getLanguageInfo()
+                    this.getCommitsPerRepo()
                 })
             },
             format_date(value){
@@ -142,17 +163,38 @@ Vue.prototype.$username = null
                 let i;
                 if (this.repoData !== null){
                     for (i in this.repoData){
-                        console.log("all the shit " + this.repoData[i].language)
                         if(this.repoData[i].language !== null){
                             this.languages.push(this.repoData[i].language)
                         }
-                        
                     }
-                    console.log("bhhhv" + this.languages.length)
                 }
                 this.languageData = this.languages.reduce((acum,cur) => Object.assign(acum,{[cur]: (acum[cur] || 0)+1}),{});
-                console.log(this.languageData)
-    //            console.log("first boy! " + this.languageData[0])
+            },
+            getCommitsPerRepo(){
+                let url;
+                let i;
+                for(i in this.repoData){
+                    url = "https://api.github.com/repos/" + this.name + "/" + this.repoData[i].name + "/commits?per_page=100&page="
+                    this.getCommitData(url, 1, this.repoData[i].name)
+                }
+            },
+            getCommitData(url, page, repoName){
+                axios.get(url+page, {
+                    headers: {
+                        authorization: "token " + process.env.VUE_APP_API_KEY
+                    },
+                    timeout:1000000
+                })
+                .then(response => {
+                    
+                    if(response.data.length === 100){
+                        this.getCommitData(url, page+1, repoName)
+                    }
+                    else{
+                        let numCommits = ((page - 1) * 100) + response.data.length
+                        this.commitData.push([repoName, numCommits])
+                    }
+                })
             }
         }
     }
