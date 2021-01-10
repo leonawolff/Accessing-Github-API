@@ -77,7 +77,7 @@ Vue.prototype.$username = null
                 
                 <br/><br/>
 
-                <v-card v-if="reveal" align="center">
+                <v-card v-if="reveal && this.notFound == false" align="center">
                     <v-card-text>
                         <v-row>
                             <v-col>
@@ -99,14 +99,56 @@ Vue.prototype.$username = null
                             Number of commits per repository
                         </h2>
                         <line-chart :data='this.commitData'></line-chart>
-                        <br/> <br/> 
+                        <br/> <br/> <br/> 
                         <h2>
                             Commit Times
                         </h2>
-                        <scatter-chart :data="this.commitTimes" xtitle="Time" ytitle="Days"></scatter-chart>
-                        <br/> <br/> 
+                        <scatter-chart :data="this.commitTimes" xtitle="Time" ytitle="Days" :xmin="0" :xmax="24"></scatter-chart>
+                        <br/> <br/> <br/>
+                        <h2 v-if="this.topRepos.length > 1"> Repository Insights </h2>
+                        <v-row v-if="this.topRepos.length >= 2">
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[0][0]"/>
+                            </v-col>
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[1][0]"/>
+                            </v-col>
+                        </v-row>
+                        <v-row v-if="this.topRepos.length >= 4">
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[2][0]"/>
+                                <br/>
+                            </v-col>
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[3][0]"/>
+                                <br/>
+                            </v-col>
+                        </v-row>
+                        <v-row v-if="this.topRepos.length >= 6">
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[4][0]"/>
+                                <br/>
+                            </v-col>
+                            <v-col>
+                                <br/>
+                                <img alt="repo stats" :src="this.repoStatsUrl + this.name + '&repo=' +this.topRepos[5][0]"/>
+                                <br/>
+                            </v-col>
+                        </v-row>
+
                         
 
+                    </v-card-text>
+                </v-card>
+
+                <v-card v-if="reveal && this.notFound == true" align="center">
+                    <v-card-text>
+                        <h2>User not found. Try again!</h2>
                     </v-card-text>
                 </v-card>
 
@@ -125,6 +167,7 @@ Vue.prototype.$username = null
                 reveal: null,
                 name: "leonawolff",
                 userData: null,
+                notFound: false,
                 repoData: [],
                 languages: [],
                 languageData: [],
@@ -132,6 +175,8 @@ Vue.prototype.$username = null
                 commitData: [],
                 moreCommitData: [],
                 commitTimes: [],
+                topRepos: [],
+                repoStatsUrl: "https://github-readme-stats.vercel.app/api/pin/?username=",
                 readMeStatsUrl: null
             }
         },
@@ -146,11 +191,17 @@ Vue.prototype.$username = null
                     },
                     timeout:1000000
                 })
+                .catch(function (error) {
+                    if (error.response.status === 404) {
+                        this.notFound = true
+                    }
+                })
                 .then(response => {
+                    console.log(response)
+                    this.notFound = false
                     this.userData = response
                     this.getRepoData(1)
                     this.readMeStatsUrl = "https://github-readme-stats.vercel.app/api?username="+ this.name
-                    console.log(this.readMeStatsUrl)
                 })
             },
             clearData(){
@@ -163,6 +214,8 @@ Vue.prototype.$username = null
                 this.readMeStatsUrl = null
                 this.moreCommitData = []
                 this.commitTimes = []
+                this.topRepos = []
+                this.repoStatsUrl = "https://github-readme-stats.vercel.app/api/pin/?username="
             },
             getRepoData (page) {
                 let url3 = "https://api.github.com/users/" + this.name + "/repos?per_page=100&page=" + page
@@ -233,8 +286,6 @@ Vue.prototype.$username = null
                 })
             },
             sortCommitData(){
-                console.log(this.moreCommitData)
-
                 for(let i = 0; i < this.moreCommitData.length; i++){
                     
                     let currentRepo = this.moreCommitData[i];
@@ -246,12 +297,10 @@ Vue.prototype.$username = null
                     }
                 }
                 this.chartifyCommitTimes();
-
+                this.getTopRepos();
             },
             chartifyCommitTimes(){
-
-                for(let i = 0; i < this.commitTimes.length-1; i++){
-
+                for(let i = 0; i < this.commitTimes.length; i++){
                     let time = this.commitTimes[i][0];
                     let times = time.split(" ");
                     if((times[1] === "pm" && parseInt(times[0]) !== 12)){
@@ -263,43 +312,39 @@ Vue.prototype.$username = null
                     else{
                         times[0] = parseInt(times[0])
                     }
-
                     let day;
                     switch (this.commitTimes[i][1]) {
-                    case "Monday":
-                        day = 0
-                        break;
-                    case "Tuesday":
-                        day = 1
-                        break;
-                    case "Wednesday":
-                        day = 2
-                        break;
-                    case "Thursday":
-                        day = 3
-                        break;
-                    case "Friday":
-                        day = 4
-                        break;
-                    case "Saturday":
-                        day = 5
-                        break;
-                    case "Sunday":
-                        day = 6
-                        break;
+                        case 'Monday':
+                            day = 0
+                            break;
+                        case 'Tuesday':
+                            day = 1
+                            break;
+                        case 'Wednesday':
+                            day = 2
+                            break;
+                        case 'Thursday':
+                            day = 3
+                            break;
+                        case 'Friday':
+                            day = 4
+                            break;
+                        case 'Saturday':
+                            day = 5
+                            break;
+                        case 'Sunday':
+                            day = 6
+                            break;
                     }
                     this.commitTimes[i][0] = times[0]
                     this.commitTimes[i][1] = day
-
-                    console.log(this.commitTimes)
                 }
-
-
-
-
-
-
-
+            },
+            getTopRepos(){
+                this.topRepos = this.commitData
+                this.topRepos.sort(function(a, b) { return b[1] - a[1]; });
+                console.log(this.topRepos)
+                console.log(this.repoStatsUrl+this.topRepos[0][0])
             }
         }
     }
