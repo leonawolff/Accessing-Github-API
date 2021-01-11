@@ -1,5 +1,7 @@
 # vue-app
 
+## [Link to live version](https://accessing-github-api.vercel.app/)
+
 ## Project setup
 ```
 npm install
