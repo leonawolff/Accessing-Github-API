@@ -77,7 +77,7 @@ Vue.prototype.$username = null
                 
                 <br/><br/>
 
-                <v-card v-if="reveal && this.notFound == false" align="center">
+                <v-card v-if="reveal && !this.notFound" align="center">
                     <v-card-text>
                         <v-row>
                             <v-col>
@@ -140,15 +140,6 @@ Vue.prototype.$username = null
                                 <br/>
                             </v-col>
                         </v-row>
-
-                        
-
-                    </v-card-text>
-                </v-card>
-
-                <v-card v-if="reveal && this.notFound == true" align="center">
-                    <v-card-text>
-                        <h2>User not found. Try again!</h2>
                     </v-card-text>
                 </v-card>
 
@@ -191,17 +182,16 @@ Vue.prototype.$username = null
                     },
                     timeout:1000000
                 })
-                .catch(function (error) {
-                    if (error.response.status === 404) {
-                        this.notFound = true
-                    }
-                })
                 .then(response => {
                     console.log(response)
                     this.notFound = false
                     this.userData = response
                     this.getRepoData(1)
                     this.readMeStatsUrl = "https://github-readme-stats.vercel.app/api?username="+ this.name
+                })
+                .catch(error => {
+                    this.notFound = true
+                    console.log(error)
                 })
             },
             clearData(){
