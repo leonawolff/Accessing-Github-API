@@ -1,7 +1,8 @@
-# vue-app
+# Accessing-Github-API
 
+Project for Software Engineering module. Accessing GitHub API to create visualisations of data relating to the software engineering process. 
 
-## [Link to live version](https://accessing-github-api.vercel.app/)
+[Link to live version](https://accessing-github-api.vercel.app/)
 
 
 ## Project setup
